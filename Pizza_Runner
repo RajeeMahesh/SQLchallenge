@@ -1,0 +1,21 @@
+This is a series of Challenges created by Dannyma. I am trying to solve the cases. here is the link : https://8weeksqlchallenge.com/case-study-2/
+
+First I am trying to clean the data. 
+Trying to remove the null values from customer_orders 
+
+with t_cust_orders as
+( 
+      SELECT order_id, customer_id, pizza_id,
+             (case when exclusions is null or exclusions like '%null%' then ' '
+                  else exclusions 
+             end) as exclusion,
+             (case when extras is null or extras like '%null%' then ' ' 
+                  else extras 
+             end) as extras, 
+             order_time 
+      from pizza_runner.customer_orders
+ ) 
+ select * from t_cust_orders
+ 
+ 
+
