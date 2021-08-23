@@ -230,6 +230,47 @@ Meat Lovers - Exclude Beef
 Meat Lovers - Extra Bacon
 Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
 
+To solve this I am creating one more temp table
+
+ext_exc_table as
+      (
+      select customer_id, pizza_name, pt1.topping_name as ex1, pt2.topping_name as ex2, pt3.topping_name as exc1, pt4.topping_name as exc2
+      from 
+          (select customer_id, pizza_name, 
+                  (case when ex1 = '' then NULL 
+                       else cast(ex1 as int) end) as ex1,
+                  (case when ex2 = '' then NULL 
+                       else cast(ex2 as int) end) as ex2,
+                  (case when exc1 = '' then NULL 
+                       else cast(exc1 as int) end) as exc1,
+                  (case when exc2 = '' then NULL 
+                       else cast(exc2 as int) end) as exc2
+          from t_cust_orders2  c2
+          join pizza_runner.pizza_names pn
+          on c2.pizza_id = pn.pizza_id
+          where c2.pizza_id = 1) t1
+      left join pizza_runner.pizza_toppings pt1 
+      on t1.ex1 = pt1.topping_id  
+      left join pizza_runner.pizza_toppings pt2 
+      on t1.ex2 = pt2.topping_id 
+      left join pizza_runner.pizza_toppings pt3 
+      on t1.ex2 = pt3.topping_id
+      left join pizza_runner.pizza_toppings pt4 
+      on t1.ex2 = pt4.topping_id
+      )
+select * from ext_exc_table
+
+select 
+		(case when pizza_name = 'Meatlovers' then customer_id end) as ML_1,
+        (case when pizza_name = 'Meatlovers' and ((exc1 = 'Beef') or (exc2 = 'Beef')) then customer_id end) ML_excbeef,
+        (case when pizza_name = 'Meatlovers' and ((ex1 = 'Bacon') or (ex2 = 'Bacon')) then customer_id end) ML_extbacon,
+        (case when pizza_name = 'meatlovers' and (((exc1 = 'cheese') or (exc2 = 'cheese')) and ((exc1 = 'Bacon') or (exc2 = 'Bacon'))) and (((ex1 = 'Mushroom') or (ex2 = 'mushroom')) and ((ex1 = 'Pepper') or (ex2 = 'Pepper'))) then customer_id end) as ML_4 
+from ext_exc_table
+
+5.Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients
+For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
+
+
 
 
  
