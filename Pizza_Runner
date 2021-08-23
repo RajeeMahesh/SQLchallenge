@@ -8,7 +8,7 @@ with t_cust_orders as
       SELECT order_id, customer_id, pizza_id,
              (case when exclusions is null or exclusions like '%null%' then ''
                   else exclusions 
-             end) as exclusion,
+             end) as exclusions,
              (case when extras is null or extras like '%null%' then '' 
                   else extras 
              end) as extras, 
@@ -203,8 +203,33 @@ t_cust_orders2 as
     )  
     
 2.What was the most commonly added extra?
-select ex1, ex2, count(ex1), count(ex2) from t_cust_orders2
-group by ex1, ex2
+select topping_name, max(count) as most_opted_extra
+ from
+       ((select extras, topping_name, count
+       from
+           (select cast(ex1 as int) as extras, count(ex1) as count 
+           from t_cust_orders2
+           where ex1 <> ''
+           group by ex1)  extra_tab
+       join pizza_runner.pizza_toppings pt 
+       on pt.topping_id = extra_tab.extras
+       union 
+       select extras, topping_name, count
+       from 
+           ( select cast(ex2 as int) as extras, count(ex2) as count
+           from t_cust_orders2
+           where ex2 <> ''
+           group by ex2) extra_tab2
+       join pizza_runner.pizza_toppings pt
+       on pt.topping_id = extra_tab2.extras)) max_table
+group by topping_name
+
+5.Generate an order item for each record in the customers_orders table in the format of one of the following:
+Meat Lovers
+Meat Lovers - Exclude Beef
+Meat Lovers - Extra Bacon
+Meat Lovers - Exclude Cheese, Bacon - Extra Mushroom, Peppers
+
 
 
  
