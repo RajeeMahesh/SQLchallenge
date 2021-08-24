@@ -261,7 +261,7 @@ ext_exc_table as
 select * from ext_exc_table
 
 select 
-		(case when pizza_name = 'Meatlovers' then customer_id end) as ML_1,
+	(case when pizza_name = 'Meatlovers' then customer_id end) as ML_1,
         (case when pizza_name = 'Meatlovers' and ((exc1 = 'Beef') or (exc2 = 'Beef')) then customer_id end) ML_excbeef,
         (case when pizza_name = 'Meatlovers' and ((ex1 = 'Bacon') or (ex2 = 'Bacon')) then customer_id end) ML_extbacon,
         (case when pizza_name = 'meatlovers' and (((exc1 = 'cheese') or (exc2 = 'cheese')) and ((exc1 = 'Bacon') or (exc2 = 'Bacon'))) and (((ex1 = 'Mushroom') or (ex2 = 'mushroom')) and ((ex1 = 'Pepper') or (ex2 = 'Pepper'))) then customer_id end) as ML_4 
@@ -269,6 +269,21 @@ from ext_exc_table
 
 5.Generate an alphabetically ordered comma separated ingredient list for each pizza order from the customer_orders table and add a 2x in front of any relevant ingredients
 For example: "Meat Lovers: 2xBacon, Beef, ... , Salami"
+/* my work still going on for this qn */
+select order_id, customer_id, trim(leading '_' from toppings)
+from 
+        (select order_id, customer_id, concat(def,',',extras,'_',exclusions) as toppings
+        from
+              (select order_id, customer_id, toppings,
+              regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(toppings, '1', 'Bacon'),'2','BBQ Sauce'),'3','Beef'),'4','Cheese'),'5','Chicken'),'6','mushrooms'),'7','onions'),'8','Pepperoni'),'9','Peppers'),'10','Salami'),'11','Tomatoes'),'12','tomato sauce') as def, 
+              regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(extras, '1', 'Bacon'),'2','BBQ Sauce'),'3','Beef'),'4','Cheese'),'5','Chicken'),'6','mushrooms'),'7','onions'),'8','Pepperoni'),'9','Peppers'),'10','Salami'),'11','Tomatoes'),'12','tomato sauce') as extras,
+              regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(regexp_replace(exclusions, '1', 'Bacon'),'2','BBQ Sauce'),'3','Beef'),'4','Cheese'),'5','Chicken'),'6','mushrooms'),'7','onions'),'8','Pepperoni'),'9','Peppers'),'10','Salami'),'11','Tomatoes'),'12','tomato sauce') as exclusions
+              from t_cust_orders co
+              join pizza_runner.pizza_recipes pr
+              on co.pizza_id = pr.pizza_id)t1)t2
+order by customer_id
+
+
 
 
 
