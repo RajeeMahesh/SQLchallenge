@@ -92,6 +92,38 @@ from
             where row_order = 2
             group by p.plan_id, plan_name
             order by p.plan_id) t2) t3
+	  
+7.What is the customer count and percentage breakdown of all 5 plan_name values at 2020-12-31?
+
+select *, concat((plan_count*100)/tot_count,'%') as Perc_split
+from 
+      (select *, (select count(distinct customer_id) 
+                              from f.subscriptions 
+                              where start_date < '2021-01-01') as tot_count
+      from            
+            (select t1.plan_id, plan_name, count(plan_name) as plan_count
+            from
+                (select customer_id, plan_id, start_date, row_number() over (partition by customer_id
+                                                                          order by plan_id desc
+                                                                          ) as row_order
+                from f.subscriptions
+                where start_date < '2021-01-01') t1
+            join f.plans p 
+            on p.plan_id = t1.plan_id
+            where row_order = 1 
+            group by t1.plan_id, plan_name) t2)t3
+	    
+8.How many customers have upgraded to an annual plan in 2020?
+select count(plan_id) as no_of_cust_upgraded_to_annualplan
+from
+    (select customer_id, plan_id, start_date, row_number() over (partition by customer_id
+                                                                              order by plan_id desc
+                                                                              ) as row_order
+    from f.subscriptions
+    where start_date < '2021-01-01')t1
+where row_order = 1 and plan_id =3 
+
+9.
 
 
 
