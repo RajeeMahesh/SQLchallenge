@@ -123,7 +123,90 @@ from
     where start_date < '2021-01-01')t1
 where row_order = 1 and plan_id =3 
 
-9.
+9.How many days on average does it take for a customer to an annual plan from the day they join Foodie-Fi?
+select round(avg(gap),2) as avg_days_took_to_switch
+from 
+        (select t1.customer_id, min, max, s1.start_date, s.start_date as switch_date, (s.start_date-s1.start_date) as gap
+        from
+              (select customer_id, min(plan_id) as min, max(plan_id) as max
+              from f.subscriptions 
+              group by customer_id
+              having max(plan_id) = 3
+              order by customer_id)t1
+        join f.subscriptions s 
+        on t1.customer_id = s.customer_id and t1.max = s.plan_id
+        join f.subscriptions s1
+        on t1.customer_id = s1.customer_id and t1.min = s1.plan_id) t2
+	
+10.Can you further breakdown this average value into 30 day periods (i.e. 0-30 days, 31-60 days etc)
+select categ, count(gap), round(avg(gap),2) as avg_cust_switchedto_plan3
+from
+        (select customer_id, min, max, gap, (case when gap <= 30 then 'A-0-30'
+                        when gap <= 60 then 'B-3-1-60'
+                        when gap <= 90 then 'C-61-90'
+                        when gap <= 120 then 'D-91-120'
+                        when gap <= 150 then 'E-121-150'
+                        when gap <= 180 then 'F-151-180'
+                        when gap <= 210 then 'G-181-210'
+                        when gap <= 240 then 'H-211-240'
+                        when gap <= 270 then 'I-241-270'
+                        when gap <= 300 then 'J-271-300'
+                        when gap <= 330 then 'K-301-330'
+                        when gap <= 360 then 'L-331-360'
+                        when gap <= 390 then 'M-361-390'
+                   end) as categ
+        from 
+              (select t1.customer_id, min, max, s1.start_date, s.start_date as switch_date, (s.start_date-s1.start_date) as gap
+                      from
+                            (select customer_id, min(plan_id) as min, max(plan_id) as max
+                            from f.subscriptions 
+                            group by customer_id
+                            having max(plan_id) = 3
+                            order by customer_id)t1
+                      join f.subscriptions s 
+                      on t1.customer_id = s.customer_id and t1.max = s.plan_id
+                      join f.subscriptions s1
+                      on t1.customer_id = s1.customer_id and t1.min = s1.plan_id) t2) t3
+group by categ
+order by categ
+
+11.How many customers downgraded from a pro monthly to a basic monthly plan in 2020?
+select *
+        from
+              (select customer_id, plan_id, start_date, row_number() over (partition by customer_id
+                                                                                            order by start_date
+                                                                                            ) as row_order
+              from f.subscriptions
+              where start_date < '2021-01-01')t1
+        where row_order = 3 and plan_id = 1
+	
+/* This gives no rows, and so we dont have any customer who downgraded from promonthly to basic plan */
+
+C. Challenge Payment Question
+The Foodie-Fi team wants you to create a new payments table for the year 2020 that includes amounts paid by each customer in the subscriptions table with the following requirements:
+
+monthly payments always occur on the same day of month as the original start_date of any monthly paid plan
+upgrades from basic to monthly or pro plans are reduced by the current paid amount in that month and start immediately
+upgrades from pro monthly to pro annual are paid at the end of the current billing period and also starts at the end of the month period
+once a customer churns they will no longer make payments
+
+select *, 
+		(case when lag_price = 9.90 then price-lag_price
+        else price
+        end) corrected_price
+from 
+      (select customer_id, s.plan_id, row_number() over (partition by customer_id
+                                                        order by start_date) as orders, 
+              start_date, plan_name, price, lag(price) over (partition by customer_id) as lag_price
+      from f.subscriptions s 
+      join f.plans p 
+      on p.plan_id = s.plan_id
+      where s.plan_id <> 0 and s.plan_id <> 4) t1
+      
+ 
+
+
+
 
 
 
