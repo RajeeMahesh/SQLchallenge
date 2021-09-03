@@ -143,6 +143,18 @@ join d.menu m
 on s.product_id = m.product_id
 where s.customer_id not IN (select distinct customer_id from d.members))
 
+(OR) - This is without UNION and using LEFT JOIN
+
+select s.customer_id, order_date, join_date, product_name, price,
+		(case when order_date < join_date or join_date is null then 'N'
+        	 else 'Y' end) as Members
+from d.sales s 
+join d.menu m 
+on s.product_id = m.product_id
+left join d.members mem
+on s.customer_id = mem.customer_id
+order by customer_id, order_date
+
 RANKING FOR MEMBERS ONLY 
 select * 
 from
@@ -185,5 +197,21 @@ from
                     where s.customer_id not IN (select distinct customer_id from d.members))) b1
           where Members = 'N')) b2 
 order by customer_id, order_date 
+
+(OR) Without UNION and using LEFT JOIN
+
+select *, (case when members = 'Y' then rank() over(partition by customer_id, members 
+                      								order by order_date)
+               else null end) as Ranking                                
+from                     
+      (select s.customer_id, order_date, join_date, product_name, price,
+              (case when order_date < join_date or join_date is null then 'N'
+                   else 'Y' end) as Members
+      from d.sales s 
+      join d.menu m 
+      on s.product_id = m.product_id
+      left join d.members mem
+      on s.customer_id = mem.customer_id)t1
+order by customer_id 
    
 
