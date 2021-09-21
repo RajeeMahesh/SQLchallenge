@@ -95,10 +95,15 @@ where visit_id IN (select visit_id
                   from prod_ident
                   where event_name = 'Purchase'
                   order by visit_id, sequence_number) and 
-      page_name not in ('Checkout', 'Confirmation', 'Home Page', 						'All Products')
+      page_name not in ('Checkout', 'Confirmation', 'Home Page', 'All Products')
 group by page_name 
 order by Purchase_cnt desc 
 limit 3
+
+3. Product Funnel Analysis
+1. 
+
+
 
 
 
